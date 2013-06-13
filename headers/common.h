@@ -34,6 +34,10 @@ inline bool startswith(const std::string& src, const std::string& dst){
 	return src.compare(0, dst.size(), dst) == 0;
 }
 
+inline bool startswith(size_t pos, const std::string& src, const std::string& dst){
+	return src.compare(pos, dst.size(), dst) == 0;
+}
+
 inline bool endswith(const std::string& src, const std::string& dst){
 	size_t dsz = dst.size();
 	if(src.size() < dsz) return false;
@@ -45,11 +49,18 @@ inline std::string selectafter(const std::string& src, const std::string& dst){
 	return trim(cn);
 }
 
+inline std::string selectafter(const std::string& src, const std::string& dst, size_t skip){
+	std::string cn = src.substr(dst.size()+skip);
+	return trim(cn);
+}
+
 struct CruncherException : public std::exception {
    std::string s;
    CruncherException(const std::string& ss) : s(ss) {}
    const char* what() const throw() { return s.c_str(); }
    ~CruncherException() throw() {};
 };
+
+#define MAX_NAME_LENGTH 256
 
 #endif /* COMMON_H_ */

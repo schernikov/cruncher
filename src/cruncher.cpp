@@ -13,11 +13,12 @@
 #include <exception>
 
 #include "undefparser.h"
-#include "ccparser.h"
+#include "parser/sindaparser.h"
+#include "system.h"
 
 using namespace std;
 
-static void parsefile(const char* fname);
+static void parsefile(System& system, const char* fname);
 
 static void usage(const char* name){
     cerr << "Usage:  " << name << " <sinfile>" << endl;
@@ -32,7 +33,9 @@ int main(int argc, const char* argv[]) {
 	}
 	cout << "parsing file " << fname << endl;
 
-	parsefile(fname);
+	System system;
+
+	parsefile(system, fname);
 
 	return 0;
 }
@@ -45,14 +48,11 @@ static void fend(Parser* parser, int& fcount, int flines){
 	delete parser;
 }
 
-void parsefile(const char* fname){
+void parsefile(System& system, const char* fname){
 	std::ifstream infile(fname);
 	int count = 0, flines = 0, fcount=0;
-	std::string prefix("C   INSERT ");
-	std::string emptycomm("C\r");
+	std::string prefix("   INSERT ");
 	std::string empty("\r");
-	std::string comment("C ");
-	std::string ccsuff(".cc");
 	std::string arraysuff(".array");
 
 	Parser* parser = 0;
@@ -63,30 +63,28 @@ void parsefile(const char* fname){
 	try {
 		while (std::getline(infile, line)) {
 			count += 1;
-			if (startswith(line, prefix)){
-				cn = selectafter(line, prefix);
+			bool comment = (line.at(0) == 'C' || line.at(0) == 'c');
+			if (comment && startswith(1, line, prefix)){
+				cn = selectafter(line, prefix, 1);
 				if(endswith(cn, arraysuff)){
 					cn.clear();
 				}
 			} else {
+				std::string trimmed = trim(line);
 				if(curname.compare(cn) != 0 && !cn.empty()){
-					if (startswith(line, emptycomm)){
+					if (comment && trimmed.size() == 1){ /* empty comment line */
 						fend(parser, fcount, flines);
 						/* new file starts here */
 						flines = 0;
 						curname = cn;
-						if(endswith(curname, ccsuff)){
-							parser = new SindaParser(curname);
-						} else {
-							parser = new UndefParser(curname);
-						}
+						parser = new SindaParser(system, curname);
 					} else {
 						/* that was not new file; ignore this line */
 						cn.clear();
 					}
 				} else {
 					flines += 1;
-					if (line.empty() || startswith(line, comment) || line.compare(empty) == 0){
+					if (comment || trimmed.size() == 0 || (trimmed.size() == 1 && trimmed.at(0) == '`')){
 						/* ignore comments and empty lines */
 					} else {
 						/* file content */

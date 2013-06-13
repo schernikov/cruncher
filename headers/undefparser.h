@@ -5,7 +5,7 @@
  *      Author: schernikov
  */
 
-#include "parser.h"
+#include "parser/parser.h"
 
 #ifndef UNDEFPARSER_H_
 #define UNDEFPARSER_H_

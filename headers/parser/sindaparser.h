@@ -6,17 +6,16 @@
  */
 
 #include "parser.h"
+#include "header.h"
+#include "system.h"
 
-#ifndef CCPARSER_H_
-#define CCPARSER_H_
-
-struct Header {
-	virtual void on_line(std::string& line) = 0;
-	virtual ~Header() {};
-};
+#ifndef SINDAPARSER_H_
+#define SINDAPARSER_H_
 
 struct SindaParser : public Parser {
-	SindaParser(std::string& nm);
+	System& system;
+
+	SindaParser(System& system, std::string& nm);
 	void on_line(std::string& line);
 	~SindaParser();
 private:
@@ -24,4 +23,4 @@ private:
 };
 
 
-#endif /* CCPARSER_H_ */
+#endif /* SINDAPARSER_H_ */
