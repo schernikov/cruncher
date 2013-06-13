@@ -16,6 +16,9 @@
 #include "parser/subroutine.h"
 #include "parser/conductor.h"
 #include "parser/variables.h"
+#include "parser/operation.h"
+#include "parser/output.h"
+#include "parser/control.h"
 
 using namespace std;
 
@@ -25,6 +28,9 @@ static const string headercondline("HEADER CONDUCTOR DATA,");
 static const string headervariableline("HEADER VARIABLES 0,");
 static const string headersubline("HEADER SUBROUTINE");
 static const string headeroptionsline("HEADER OPTIONS");
+static const string headeroperline("HEADER OPERATION DATA");
+static const string headeroutputline("HEADER OUTPUT CALLS");
+static const string headercontrolline("HEADER CONTROL DATA");
 
 SindaParser::SindaParser(System& sys, std::string& nm) : Parser(nm), system(sys), header(0) {
 
@@ -51,6 +57,12 @@ void SindaParser::on_line(std::string& line) {
 		} else if (startswith(line, headeroptionsline)){
 			string modname = selectafter(line, headeroptionsline);
 			header = new OptionsHeader(system, modname);
+		} else if (startswith(line, headeroperline)){
+			header = new OperationHeader(system, "");
+		} else if (startswith(line, headeroutputline)){
+			header = new OutputHeader(system, "");
+		} else if (startswith(line, headercontrolline)){
+			header = new ControlHeader(system, "");
 		} else {
 			cout << "  " << line << endl;
 		}

@@ -37,6 +37,9 @@ void OptionsHeader::on_line(std::string& line){
 		return;
 	}
 	if(startswith(subline, titleline)){
+		std::string title = selectafter(subline, titleline);
+		title = trim(title);
+		system.on_title(title.c_str());
 		return;
 	}
 	throw CruncherException("Unexpected options line: "+line);

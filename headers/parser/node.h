@@ -17,5 +17,4 @@ struct NodeHeader : public Header {
 	void on_line(std::string& line);
 };
 
-
 #endif /* NODE_H_ */

@@ -17,10 +17,11 @@ void ConductHeader::on_line(std::string& line){
 	long idx;
 	char fromname[MAX_NAME_LENGTH], toname[MAX_NAME_LENGTH];
 	long fromnode, tonode;
-	double cap;
+	double cond;
 
 	/* 1,    ADCE.1,    NPANEL.13,    14.025         $ Contact */
-	if(sscanf(line.c_str(), format, &idx, &fromname, &fromnode, &toname, &tonode, &cap) != 6){
+	if(sscanf(line.c_str(), format, &idx, &fromname, &fromnode, &toname, &tonode, &cond) != 6){
 		throw CruncherException("node parse failed for "+line);
 	}
+	system.on_conduct(idx, fromname, fromnode, toname, tonode, cond);
 }

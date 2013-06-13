@@ -17,4 +17,5 @@ void NodeHeader::on_line(std::string& line){
 	if(sscanf(line.c_str(), "%ld,%lf,%lf\r", &node, &temp, &cap) != 3){
 		throw CruncherException("node parse failed for "+line);
 	}
+	system.on_node(modname.c_str(), node, temp, cap);
 }
