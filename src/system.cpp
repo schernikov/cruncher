@@ -36,3 +36,7 @@ void System::on_temp_array(const char* modname, long nodenum, const char* arraym
 void System::on_temp_assign(const char* frommod, long fromnode, const char* tomod, long tonode){
 
 }
+
+void System::on_sun(double offset, const char* aname, long fnum, long tnum, size_t count, const long* anums){
+
+}

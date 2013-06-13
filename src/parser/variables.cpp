@@ -14,9 +14,10 @@
 static std::string varcond("IF( NSOL .GT. 1 .OR. DTIMES .GT. 0. ) THEN");
 static std::string qcall("CALL DA11MC(");
 static std::string tcall("CALL D1DEG1 (");
-//static std::string varcall("CALL DA11MC(");
+static std::string lcall("CALL LOADQ(");
 static std::string varelse("ELSE");
 static std::string varend("ENDIF");
+static std::string timem("TIMEM");
 
 void ArraySpec::set(const std::string& mod, long tm, long val, const std::string& var){
 	arrayname = mod;
@@ -65,17 +66,20 @@ void VariablesHeader::checkvars(){
 	}
 }
 
-void VariablesHeader::on_callargs(std::string& subline, const std::string& call, long tmidx, long valsidx, long varidx){
-	checkvars();
-
+std::string get_args(std::string& subline, const std::string& call){
 	size_t pos = subline.find(')', call.size());
 	if(pos == std::string::npos){
 		throw CruncherException("Expected closing bracket: "+subline);
 	}
-	std::string args =subline.substr(call.size(), pos-call.size());
-	std::stringstream ss(args);
+	return subline.substr(call.size(), pos-call.size());
+}
+
+void VariablesHeader::on_callargs(std::string& subline, const std::string& call, long tmidx, long valsidx, long varidx){
+	checkvars();
+
+	std::stringstream ss(get_args(subline, call));
 	std::string arg;
-	pos = 0;
+	size_t pos = 0;
 	long time, vals;
 	std::string name;
 	while (std::getline(ss, arg, ',')) {
@@ -100,6 +104,37 @@ void VariablesHeader::on_callargs(std::string& subline, const std::string& call,
 		return;
 	}
 	set_from_array(vspec, current_array);
+}
+
+void VariablesHeader::on_sunargs(std::string& subline, const std::string& call){
+	std::stringstream ss(get_args(subline, call));
+	std::string arg;
+	size_t pos = 0;
+	long fnum, tnum;
+	long arrays[5];
+	std::string name;
+	while (std::getline(ss, arg, ',')) {
+		pos += 1;
+		if(pos == 1){
+			name = trim(arg);
+			if(name.at(0) == '\'' && name.at(name.size()-1) == '\''){
+				name = name.substr(1, name.size()-2);
+			}
+		} else if (pos == 2) {
+			if(sscanf(arg.c_str(), "%ld", &fnum) != 1){
+				throw CruncherException("Expected number as argument 2 in '"+subline+"'");
+			}
+		} else if (pos == 3) {
+			if(sscanf(arg.c_str(), "%ld", &tnum) != 1){
+				throw CruncherException("Expected number as argument 3 in '"+subline+"'");
+			}
+		} else if (pos >= 4 && pos <= 8) {
+			arrays[pos-4] = getarray(arg);
+		} else {
+			throw CruncherException("Too many arguments in "+subline);
+		}
+	}
+	system.on_sun(sun_mode.offset, name.c_str(), fnum, tnum, sizeof(arrays)/sizeof(arrays[0]), arrays);
 }
 
 void VariablesHeader::set_from_array(const VarSpec& vspec, const ArraySpec& array){
@@ -142,6 +177,13 @@ void VariablesHeader::on_line(std::string& line){
 		}
 		if(startswith(subline, tcall)){
 			on_callargs(subline, tcall, 2, 2, 3);
+			return;
+		}
+		if(startswith(subline, lcall)){
+			if(!sun_mode.is_on()){
+				throw CruncherException("Got '"+line+"'. Sun offset was expected.");
+			}
+			on_sunargs(subline, lcall);
 			return;
 		}
 		if(startswith(subline, varelse)){
@@ -246,13 +288,18 @@ void VariablesHeader::on_sum(const std::string& line, size_t epos, size_t spos){
 	if(in_node.compare(out_node) != 0){
 		throw CruncherException("increment is expected "+line);
 	}
+	std::string sum = line.substr(spos+1, std::string::npos);
+	sum = trim(sum);
+
 	char mname[MAX_NAME_LENGTH];
 	long nodenum;
 	if(sscanf(in_node.c_str(), format, &mname, &nodenum) != 2){
+		if(in_node.compare(timem) == 0){
+			sun_mode.on_offset(sum);
+			return;
+		}
 		throw CruncherException("equation node parse failed for "+line);
 	}
-	std::string sum = line.substr(spos+1, std::string::npos);
-	sum = trim(sum);
 	size_t starpos = sum.find("*");
 	if(starpos != std::string::npos){
 		std::stringstream ss(sum);
@@ -281,4 +328,31 @@ void VariablesHeader::on_sum(const std::string& line, size_t epos, size_t spos){
 		}
 		system.on_energy(mname, nodenum, num);
 	}
+}
+
+bool SunMode::is_on(){
+	return open && !closed;
+}
+
+void SunMode::on_offset(const std::string& sum){
+	if(!open){
+		double off;
+		if(sscanf(sum.c_str(), "%lf", &off) != 1){
+			throw CruncherException("Expected start offset instead of: "+sum);
+		}
+		offset = off;
+		open = true;
+		return;
+	}
+	if(closed){
+		throw CruncherException("Unexpected offset. Already had complete sun block.");
+	}
+	double off;
+	if(sscanf(sum.c_str(), "%lf", &off) != 1){
+		throw CruncherException("Expected end offset instead of: "+sum);
+	}
+	if(off != (-offset)){
+		throw CruncherException("Start and end offset expected to be equal: "+sum);
+	}
+	closed = true;
 }
