@@ -43,7 +43,6 @@ std::string ArraySpec::str(){
 VariablesHeader::VariablesHeader(System& sys, const std::string& nm) : Header(sys, nm) {
 	sprintf(format, "%s%d\[^.].Q%sld", "%",MAX_NAME_LENGTH,"%");
 	had_else = false;
-	//cout << nm << " variables" << endl;
 };
 
 VariablesHeader::~VariablesHeader() {
@@ -61,7 +60,6 @@ static long getarray(std::string& arg){
 
 void VariablesHeader::checkvars(){
 	if(!current_array.empty()){
-		std::cout << "   " << modname << ": time call " << current_array.str() << std::endl;
 		current_array.clear();
 	}
 }
@@ -235,7 +233,7 @@ VarSpec VariablesHeader::on_varname(const std::string& vn){
 	if(sscanf(nd.c_str(), "%ld", &num) != 1){
 		num = 0;
 	}
-	return VarSpec(energy?VS_Energy:VS_Temperature, mod, 0);
+	return VarSpec(energy?VS_Energy:VS_Temperature, mod, num);
 }
 
 void VariablesHeader::assign(const std::string& line, size_t epos){

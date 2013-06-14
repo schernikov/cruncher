@@ -13,21 +13,23 @@
 #include <cctype>
 #include <locale>
 
-// trim from start
-inline std::string &ltrim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-        return s;
-}
-
-// trim from end
-inline std::string &rtrim(std::string &s) {
-        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-        return s;
-}
-
 // trim from both ends
-inline std::string &trim(std::string &s) {
-        return ltrim(rtrim(s));
+inline std::string trim(const std::string &s) {
+	int len = s.size();
+	int epos = len-1;
+	const char* name = s.c_str();
+	while(name[epos] <= 0x20){
+		if(epos == 0){
+			return "";
+		}
+		epos -= 1;
+	}
+	int pos = 0;
+	while(name[pos] <= 0x20){
+		pos += 1;
+	}
+	std::string ss(name+pos, epos+1-pos);
+	return ss;
 }
 
 inline bool startswith(const std::string& src, const std::string& dst){

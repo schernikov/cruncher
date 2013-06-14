@@ -11,6 +11,20 @@
 #include <string>
 
 struct System {
+	std::string title;
+	long total_nodes;
+	long total_conducts;
+	long total_rads;
+	long total_lins;
+	long diffus;
+	long arithms;
+	long bounds;
+	long heats;
+	long oneways;
+	long negates;
+
+	System();
+
 	void on_energy(const char* modname, long nodenum, const char* arraymod, long timesarray, long valsarray);
 	void on_energy(const char* modname, long nodenum, double mult, const char* arraymod, long timesarray, long valsarray);
 	void on_energy(const char* modname, long nodenum, double sum);
@@ -24,6 +38,8 @@ struct System {
 	void on_variable(const char* name, double val);
 	void on_array(const char* name, long idx, long count, const double* values);
 	void on_node_list(long idx, const char* name, long count, long* nodes);
+
+	void process();
 };
 
 
