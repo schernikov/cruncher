@@ -19,6 +19,8 @@
 #include "parser/operation.h"
 #include "parser/output.h"
 #include "parser/control.h"
+#include "parser/array.h"
+#include "parser/carray.h"
 
 using namespace std;
 
@@ -26,6 +28,8 @@ static const string headerline("HEADER");
 static const string headernodeline("HEADER NODE DATA,");
 static const string headercondline("HEADER CONDUCTOR DATA,");
 static const string headervariableline("HEADER VARIABLES 0,");
+static const string headerarrayline("HEADER ARRAY DATA,");
+static const string headerchararrayline("HEADER CARRAY DATA,");
 static const string headersubline("HEADER SUBROUTINE");
 static const string headeroptionsline("HEADER OPTIONS");
 static const string headeroperline("HEADER OPERATION DATA");
@@ -35,13 +39,17 @@ static const string headercontrolline("HEADER CONTROL DATA");
 SindaParser::SindaParser(System& sys, std::string& nm) : Parser(nm), system(sys), header(0) {
 
 }
+void SindaParser::close_header(){
+	if(header) {
+		delete header;
+		header = 0;
+	}
+}
 
 void SindaParser::on_line(std::string& line) {
 	if(startswith(line, headerline)) {
-		if(header) {
-			delete header;
-			header = 0;
-		}
+		close_header();
+
 		if(startswith(line, headernodeline)){
 			string modname = selectafter(line, headernodeline);
 			header = new NodeHeader(system, modname);
@@ -63,6 +71,12 @@ void SindaParser::on_line(std::string& line) {
 			header = new OutputHeader(system, "");
 		} else if (startswith(line, headercontrolline)){
 			header = new ControlHeader(system, "");
+		} else if (startswith(line, headerarrayline)){
+			string modname = selectafter(line, headerarrayline);
+			header = new ArrayHeader(system, modname);
+		} else if (startswith(line, headerchararrayline)){
+			string modname = selectafter(line, headerchararrayline);
+			header = new CarrayHeader(system, modname);
 		} else {
 			cout << "  " << line << endl;
 		}
@@ -76,5 +90,5 @@ void SindaParser::on_line(std::string& line) {
 }
 
 SindaParser::~SindaParser() {
-	//cout << "destroying " << name() << endl;
+	close_header();
 }

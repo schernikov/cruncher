@@ -22,6 +22,8 @@ struct System {
 	void on_node(const char* mod, long node, double temp, double cap);
 	void on_title(const char* title);
 	void on_variable(const char* name, double val);
+	void on_array(const char* name, long idx, long count, const double* values);
+	void on_node_list(long idx, const char* name, long count, long* nodes);
 };
 
 

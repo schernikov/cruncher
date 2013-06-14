@@ -95,6 +95,7 @@ void parsefile(System& system, const char* fname){
 		}
 		fend(parser, fcount, flines);
 	} catch (exception& e) {
+		if(parser) delete parser;
 		cerr << curname << " line " << flines << endl << "  " << e.what() << endl;
 		return;
 	}

@@ -52,6 +52,7 @@ void System::on_sun(double offset, const char* aname, long fnum, long tnum, size
 		anums[3] - Time array
 		anums[4] - Scale array where heating rates can be scaled
 	*/
+	//TODO: process
 }
 
 void System::on_conduct(long idx, const char* fmod, long fnode, const char* tmod, long tnode, double cond){
@@ -63,5 +64,13 @@ void System::on_node(const char* mod, long node, double temp, double cap){
 }
 
 void System::on_variable(const char* name, double val){
+
+}
+
+void System::on_array(const char* name, long idx, long count, const double* values){
+
+}
+
+void System::on_node_list(long idx, const char* name, long count, long* nodes){
 
 }
