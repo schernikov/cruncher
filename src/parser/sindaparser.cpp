@@ -21,6 +21,7 @@
 #include "parser/control.h"
 #include "parser/array.h"
 #include "parser/carray.h"
+#include "parser/vars_1.h"
 
 using namespace std;
 
@@ -35,6 +36,7 @@ static const string headeroptionsline("HEADER OPTIONS");
 static const string headeroperline("HEADER OPERATION DATA");
 static const string headeroutputline("HEADER OUTPUT CALLS");
 static const string headercontrolline("HEADER CONTROL DATA");
+static const string headervars1line("HEADER VARIABLES 1,");
 
 SindaParser::SindaParser(System& sys, std::string& nm) : Parser(nm), system(sys), header(0) {
 
@@ -59,6 +61,9 @@ void SindaParser::on_line(std::string& line) {
 		} else if (startswith(line, headervariableline)){
 			string modname = selectafter(line, headervariableline);
 			header = new VariablesHeader(system, modname);
+		} else if (startswith(line, headervars1line)){
+			string modname = selectafter(line, headervars1line);
+			header = new Vars1Header(system, modname);
 		} else if (startswith(line, headersubline)){
 			string modname = selectafter(line, headersubline);
 			header = new SubroutineHeader(system, modname);

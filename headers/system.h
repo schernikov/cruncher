@@ -9,6 +9,12 @@
 #define SYSTEM_H_
 
 #include <string>
+#include <vector>
+#include "elements.h"
+#include "arcode.h"
+
+typedef boost::unordered_map<std::string, Array*> ArrayMap;
+typedef std::vector<std::string> StringVector;
 
 struct System {
 	std::string title;
@@ -21,9 +27,22 @@ struct System {
 	long bounds;
 	long heats;
 	long oneways;
-	long negates;
+
+	NodeSet hset;
+	NodeSet qset;
+	NodeSet tset;
+	NodeSet aset;
+	NodeSet bset;
+	NodeSet dset;
+
+	ArrayMap amap;
+
+	NodeCollect collection;
 
 	System();
+	~System();
+
+	void parsefile(const char* fname);
 
 	void on_energy(const char* modname, long nodenum, const char* arraymod, long timesarray, long valsarray);
 	void on_energy(const char* modname, long nodenum, double mult, const char* arraymod, long timesarray, long valsarray);
@@ -38,8 +57,15 @@ struct System {
 	void on_variable(const char* name, double val);
 	void on_array(const char* name, long idx, long count, const double* values);
 	void on_node_list(long idx, const char* name, long count, long* nodes);
+	void on_approx(const char* mod, long node, long pos, double mult, const char* name, long num);
 
+	void modnames(StringVector& nms);
+	void getnodes(std::string& mod, long size, long arr[]);
+	void pulltemps(std::string& mod, long size, long* idxs, double* vals);
+	void pullcaps(std::string& mod, long size, long* idxs, double* vals);
+	long nodescount(std::string& mod);
 	void process();
+	void report();
 };
 
 

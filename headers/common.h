@@ -59,6 +59,7 @@ inline std::string selectafter(const std::string& src, const std::string& dst, s
 struct CruncherException : public std::exception {
    std::string s;
    CruncherException(const std::string& ss) : s(ss) {}
+   CruncherException(const char* format, ...);
    const char* what() const throw() { return s.c_str(); }
    ~CruncherException() throw() {};
 };

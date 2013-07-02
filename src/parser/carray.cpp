@@ -84,7 +84,6 @@ void CarrayHeader::close(){
 }
 
 CarrayHeader::~CarrayHeader() {
-	std::cout << "   " << modname << " " << sequence << " nodes found" << std::endl;
 	stop();
 	delete values;
 }

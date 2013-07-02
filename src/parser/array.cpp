@@ -11,7 +11,7 @@
 
 #include "parser/array.h"
 
-#define INIT_VALUES_COUNT 1024
+#define INIT_VALUES_COUNT 100000
 
 ArrayHeader::ArrayHeader(System& sys, const std::string& nm) : BaseArrayHeader(sys, nm){
 	maxcount = INIT_VALUES_COUNT;
