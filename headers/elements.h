@@ -17,6 +17,8 @@
 struct Node;
 
 typedef boost::unordered_map<long, Node*> NodeMap;
+typedef boost::unordered_map<Node*, double> ConductMap;
+
 
 struct Module {
 	std::string name;
@@ -28,10 +30,13 @@ struct Node {
 	const long num;
 	double temperature;
 	double capacitance;
+	ConductMap lins;
+	ConductMap rads;
 
 	Node(Module* mod, long num);
 	void init(double temp, double cap);
 	Node* self() { return this;};
+	double connect(bool lin, Node& nd, double cond);
 };
 
 struct StatInfo {

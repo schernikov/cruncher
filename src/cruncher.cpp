@@ -29,11 +29,15 @@ int main(int argc, const char* argv[]) {
 
 	System system;
 
-	system.parsefile(fname);
+	try {
+		system.parsefile(fname);
 
-	system.process();
+		system.process();
+		system.report();
+	} catch (std::exception& e) {
+		std::cerr << "Failure: " << e.what();
+	}
 
-	system.report();
 
 	return 0;
 }

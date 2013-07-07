@@ -20,6 +20,18 @@ void Node::init(double temp, double cap){
 	this->capacitance = cap;
 }
 
+double Node::connect(bool lin, Node& nd, double cond){
+	ConductMap* cm = lin ? (&lins) : (&rads);
+	ConductMap::iterator it = cm->find(&nd);
+	if(it == cm->end()){
+		(*cm)[&nd] = cond;
+		return cond;
+	}
+	double old = it->second;
+	it->second = cond;
+	return old;
+}
+
 Node& NodeCollect::get(const char* name, long num){
 	Module* mod;
 	ModuleMap::iterator mit = modules.find(name);

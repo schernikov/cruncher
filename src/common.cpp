@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-static std::string vformat (const char *fmt, va_list ap){
+std::string cr_vformat (const char *fmt, va_list ap){
     // Allocate a buffer on the stack that's big enough for us almost
     // all the time.  Be prepared to allocate dynamically if it doesn't fit.
     char stackbuf[1024];
@@ -45,6 +45,6 @@ static std::string vformat (const char *fmt, va_list ap){
 CruncherException::CruncherException(const char * format, ... ){
   va_list args;
   va_start (args, format);
-  s = vformat (format, args);
+  s = cr_vformat (format, args);
   va_end (args);
 }
