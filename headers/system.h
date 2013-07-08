@@ -41,6 +41,19 @@ typedef std::vector<ModConnects> ModsVector;
 typedef double* (*DAllocator)(size_t size, void* f);
 typedef long* (*LAllocator)(size_t size, void* f);
 
+struct WeightedNode {
+    std::string nm;
+    long num;
+    double weight;
+};
+
+typedef std::vector<WeightedNode> WeightedNodesVector;
+
+typedef std::pair<Node*, double> WeightPair;
+typedef std::vector<WeightPair> ApproxVector;
+
+typedef boost::unordered_map<Node*, ApproxVector> ApproxMap;
+
 struct System {
 	std::string title;
 	long total_nodes;
@@ -51,7 +64,6 @@ struct System {
 	long arithms;
 	long bounds;
 	long heats;
-	long oneways;
 
 	double start;
 	double stop;
@@ -63,6 +75,9 @@ struct System {
 	NodeSet bset;
 	NodeSet dset;
 	NodeSet sset;
+	NodeSet oset;
+	NodeSet kset;
+	NodeSet uset;
 	NodeSetMap nodesets;
 
 	ArrayMap amap;
@@ -70,6 +85,8 @@ struct System {
 	ArraySet tarrs;
 	ArraySet qarrs;
 	ArraySet sarrs;
+
+	ApproxMap approxes;
 
 	NodeCollect collection;
 
@@ -112,6 +129,7 @@ struct System {
 
 	void modconns(ModsVector& vect);
 	void consvals(std::string& tp, std::string& fmod, std::string& tmod, size_t size, LAllocator la, DAllocator da, void* f);
+	void appox(std::string& mod, long num, WeightedNodesVector& vec);
 
 	void process();
 	void report();

@@ -5,6 +5,7 @@
  *      Author: schernikov
  */
 
+#include "common.h"
 #include "elements.h"
 #include <cstdio>
 #include <boost/foreach.hpp>
@@ -43,6 +44,9 @@ Node& NodeCollect::get(const char* name, long num){
 	}
 	NodeMap::iterator nit = mod->nodes.find(num);
 	if (nit == mod->nodes.end()){
+		if(num <= 0){
+			throw CruncherException("Invalid node index %ld in %s", num, name);
+		}
 		Node* newnode = new Node(mod, num);
 		mod->nodes[num] = newnode;
 		return *newnode;

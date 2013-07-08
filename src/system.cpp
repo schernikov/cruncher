@@ -38,7 +38,6 @@ System::System(){
 	arithms = 0;
 	bounds = 0;
 	heats = 0;
-	oneways = 0;
 	start = -1.0;
 	stop = -1.0;
 	sun_time = 0;
@@ -50,6 +49,9 @@ System::System(){
 	nodesets["boundary"] = &bset;
 	nodesets["diffuse"] = &dset;
 	nodesets["sun"] = &sset;
+	nodesets["one"] = &oset;
+	nodesets["approximated"] = &kset;
+	nodesets["undefined"] = &uset;
 	conflicts = 0;
 }
 
@@ -218,9 +220,11 @@ void System::on_conduct(long idx, const char* fmod, long fnode, const char* tmod
 		ss << "Unexpected conductor: [" << idx<< "]"<< fmod << "."<< fnode << " -> "<< tmod << "." << tnode << " = "<< cond;
 		throw CruncherException(ss.str());
 	}
+	bool one = false;
 	if(fnode < 0){
 		/* one-way conductor */
-		oneways += 1;
+		fnode = -fnode;
+		one = true;
 		if(show) printf("one-way: [%ld] %s.%ld -> %s.%ld = %.2lf\n", idx, fmod, fnode, tmod, tnode, cond);
 	}
 	if(cond < 0){
@@ -228,6 +232,9 @@ void System::on_conduct(long idx, const char* fmod, long fnode, const char* tmod
 	}
 	Node& fnd = collection.get(fmod, fnode);
 	Node& tnd = collection.get(tmod, tnode);
+	if(one){
+		oset.add(tnd);
+	}
 
 	double old;
 	if(idx > 0){
@@ -322,6 +329,15 @@ void System::on_node_list(long idx, const char* name, long count, long* nodes){
 
 /* called on sensor temperature approximation equation */
 void System::on_approx(const char* mod, long node, long pos, double mult, const char* name, long num){
+	Node& xnd = collection.get(mod, node);
+	Node& nd = collection.get(name, num);
+
+	ApproxVector& vec = approxes[&xnd];
+	if(vec.size() == 0){
+		kset.add(xnd); /* need to do it only once for given destination node */
+	}
+	vec.push_back(WeightPair(&nd, mult));
+
 	if(show) printf("  %s.%ld[%ld]= + %f*%s.%ld\n", mod, node, pos, mult, name, num);
 }
 
@@ -376,6 +392,16 @@ void System::process(){
 		((Array*)varr)->replace(allpoints, newvals);
 
 		sarrs.add(*nodes, 1.0, sun_time, varr);
+	}
+
+	/* let's try to find undefined nodes */
+	BOOST_FOREACH(ModuleMap::value_type i, collection.modules) {
+		BOOST_FOREACH(NodeMap::value_type nid, i.second.nodes) {
+			Node& nd = *nid.second;
+			if(nd.capacitance < 0){
+				uset.add(nd);
+			}
+		}
 	}
 }
 
@@ -541,6 +567,22 @@ void System::consvals(std::string& tp, std::string& fname, std::string& tname, s
 	}
 }
 
+void System::appox(std::string& mod, long num, WeightedNodesVector& dvec){
+	BOOST_FOREACH(ApproxMap::value_type aid, approxes) {
+		Node* xnd = aid.first;
+		if(xnd->parent->name.compare(mod) != 0) continue;
+		if(xnd->num != num) continue;
+		ApproxVector& avec = aid.second;
+		BOOST_FOREACH(ApproxVector::value_type aid, avec) {
+			Node* nd = aid.first;
+			WeightedNode wnd = {nd->parent->name, nd->num, aid.second};
+			dvec.push_back(wnd);
+		}
+		return;
+	}
+	/* not found */
+}
+
 static void duparray(const Array* array, DAllocator allocator, void* f){
 	double* times = allocator(array->count, f);
 	if(!times){
@@ -587,10 +629,16 @@ void System::report(){
 	qset.show("        ");
 	printf("external Ts:\n");
 	tset.show("        ");
+	if(uset.set.size()){
+		printf("  undefined:\n");
+		uset.show("        ");
+	}
 	printf("Total conducts: %ld\n", total_conducts);
 	printf("     linear: %ld\n", total_lins);
 	printf("       rads: %ld\n", total_rads);
-	printf("    one-way: %ld\n", oneways);
+	printf("    one-way: %ld\n", oset.set.size());
+	printf("    approx.: %ld\n", kset.set.size());
+	printf("  undefined: %ld\n", uset.set.size());
 	std::stringstream ss;
 	if((long)confcons.size() != conflicts){
 		ss << " (" << conflicts-confcons.size() << " more than once)";
